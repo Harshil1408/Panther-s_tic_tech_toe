@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="shortcut icon" type="png" href="images/icon/name.png">
+	<title>Login SignUp</title>
+	<link rel="stylesheet" type="text/css" href="login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+</head>
+<body>
+
+	<div class="form-box">
+	<div class="button-box">
+		<div id="btn"></div>
+		<button type="button" class="toggle-btn" id="log" onclick="login()" style="color: #fff;">Log In</button>
+		<button type="button" class="toggle-btn" id="reg" onclick="register()">Register</button>
+	</div>
+
+	<div class="social-icons">
+		<div style="text-align: center; font-family: 'Poppins', sans-serif; font-size: 24px; color: #333;"><i>BUDGETBUDDY</i></div>
+	</div>
+
+	<!-- Login Form -->
+	<form id="login" class="input-group" onsubmit="loginUser(); return false;">
+		<div class="inp">
+			<img src="images/user.png"><input type="text" id="log-email" class="input-field" placeholder="Username or Phone Number" style="width: 88%; border:none;" required="required">
+		</div>
+		<div class="inp">
+			<img src="images/password.png"><input type="password" id="log-password" class="input-field" placeholder="Password" style="width: 88%; border: none;" required="required">
+		</div>
+		<input type="checkbox" class="check-box">Remember Password
+		<button type="submit" class="submit-btn">Log In</button>
+	</form>
+
+	<div class="other" id="other">
+		<div class="instead">
+			<h3>or</h3>
+		</div>
+		<button class="connect" onclick="google()">
+			<img src="images/google.png"><span>Sign in with Google</span>
+		</button>
+	</div>
+
+	<!-- Registration Form -->
+	<form id="register" class="input-group" onsubmit="registerUser(); return false;">
+		<input type="username" class="input-field" placeholder="Full Name" required="required" id="reg-username">
+		<input type="email" class="input-field" placeholder="Email Address" required="required" id="reg-email">
+		<input type="password" class="input-field" placeholder="Create Password" name="psame" required="required" id="reg-password">
+		<input type="password" class="input-field" placeholder="Confirm Password" name="psame" required="required">
+		<input type="checkbox" class="check-box" id="chkAgree" onclick="goFurther()">I agree to the Terms & Conditions
+		<button type="submit" id="btnSubmit" class="submit-btn reg-btn" disabled>Register</button>
+	</form>
+	</div>
+	<script type="text/javascript" src="login.js"></script>
+
+</body>
+</html>

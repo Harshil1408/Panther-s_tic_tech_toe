@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BUDGETBUDDY - KNOW YOUR EXPENSES</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <script>
+      // Check if user is logged in
+      const loggedInUser = sessionStorage.getItem('loggedInUser');
+      if (!loggedInUser) {
+        window.location.href = 'login.html';
+      }
+    </script>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-8">
+        <div class="flex items-center">
+          <i class="fas fa-wallet text-3xl text-blue-500 mr-2"></i>
+          <div>
+            <h1 class="text-2xl md:text-3xl font-pacifico text-gray-500 dark:text-white">
+              BudgetBuddy
+            </h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400" id="welcome-message"></p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button
+            id="logout-btn"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            onclick="logout()"
+          >
+            Logout
+          </button>
+          <!-- Currency Selector -->
+          <select
+            id="currency-selector"
+            class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 text-gray-700 dark:text-gray-200"
+          >
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+            <option value="GBP">£ GBP</option>
+            <option value="JPY">¥ JPY</option>
+            <option value="INR">₹ INR</option>
+          </select>
+          <!-- Theme Toggle -->
+          <!-- Theme Toggle -->
+          <button
+            id="theme-toggle"
+            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+          >
+            <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+            <i class="fas fa-moon text-blue-300 hidden dark:block"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Balance Overview -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+          Balance Overview
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+            <p class="text-sm text-black">Current Balance</p>
+            <p id="current-balance" class="text-2xl font-bold text-black-600 dark:text-black-400">
+              $0.00
+            </p>
+          </div>
+          <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+            <p class="text-sm text-black">Income</p>
+            <p
+              id="total-income"
+              class="text-2xl font-bold text-green-600 dark:text-green-400"
+            >
+              $0.00
+            </p>
+          </div>
+          <div class="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
+            <p class="text-sm text-blackwh">Expenses</p>
+            <p
+              id="total-expenses"
+              class="text-2xl font-bold text-red-600 dark:text-red-400"
+            >
+              $0.00
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Transaction -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+          Add Transaction
+        </h2>
+        <form id="transaction-form" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="transaction-name"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >Description</label
+              >
+              <input
+                type="text"
+                id="transaction-name"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                placeholder="What was it for?"
+                required
+              />
+            </div>
+            <div>
+              <label
+                for="transaction-amount"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >Amount</label
+              >
+              <input
+                type="number"
+                id="transaction-amount"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                placeholder="0.00"
+                step="0.01"
+                required
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="transaction-date"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >Date</label
+              >
+              <input
+                type="date"
+                id="transaction-date"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                required
+              />
+            </div>
+            <div>
+              <label
+                for="transaction-category"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >Category</label
+              >
+              <select
+                id="transaction-category"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                required
+              >
+                <option value="">Select a category</option>
+                <optgroup label="Income">
+                  <option value="salary">Salary</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="investment">Investment</option>
+                  <option value="gift">Gift</option>
+                  <option value="other-income">Other Income</option>
+                </optgroup>
+                <optgroup label="Expense">
+                  <option value="food">Food</option>
+                  <option value="transportation">Transportation</option>
+                  <option value="housing">Housing</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="other-expense">Other Expense</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Add Transaction
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
+            Recent Transactions
+          </h2>
+          <div class="flex space-x-2">
+            <select
+              id="filter-transactions"
+              class="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm"
+            >
+              <option value="all">All</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            <select
+              id="sort-transactions"
+              class="w-full md:w-auto px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm"
+            >
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="amount-desc">Highest Amount</option>
+              <option value="amount-asc">Lowest Amount</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+          >
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Description
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Category
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Amount
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="transactions-table-body"
+              class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+            >
+              <!-- Transactions will be added here dynamically -->
+              <tr class="text-gray-500 dark:text-gray-400 text-center">
+                <td colspan="5" class="px-6 py-4">No transactions yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Expense Distribution Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            Expense Distribution
+          </h2>
+          <div style="position: relative; height: 250px; width: 100%; margin: 0 auto;">
+            <canvas id="expense-chart"></canvas>
+          </div>
+        </div>
+        <!-- Income vs Expense Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            Income vs Expenses
+          </h2>
+          <div style="position: relative; height: 250px; width: 100%; margin: 0 auto;">
+            <canvas id="income-expense-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
+          Data Management
+        </h2>
+        <div class="flex flex-wrap gap-4">
+          <button
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            onclick="clearData()"
+          >
+            Clear Data
+          </button>
+          <button
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            onclick="exportData()"
+          >
+            Export Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for adding budget -->
+    <div
+      id="budget-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
+          Add Budget
+        </h2>
+        <form id="budget-form" class="space-y-4">
+          <div>
+            <label
+              for="budget-category"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >Category</label
+            >
+            <select
+              id="budget-category"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+              required
+            >
+              <option value="">Select a category</option>
+              <optgroup label="Income">
+                <option value="salary">Salary</option>
+                <option value="freelance">Freelance</option>
+                <option value="investment">Investment</option>
+                <option value="gift">Gift</option>
+                <option value="other-income">Other Income</option>
+              </optgroup>
+              <optgroup label="Expense">
+                <option value="food">Food</option>
+                <option value="transportation">Transportation</option>
+                <option value="housing">Housing</option>
+                <option value="utilities">Utilities</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="shopping">Shopping</option>
+                <option value="other-expense">Other Expense</option>
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label
+              for="budget-amount"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >Amount</label
+            >
+            <input
+              type="number"
+              id="budget-amount"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+              placeholder="0.00"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Add Budget
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Check for saved theme preference or use system preference
+      if (
+        localStorage.getItem("budgetBuddy_theme") === "dark" ||
+        (!localStorage.getItem("budgetBuddy_theme") &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
+      // Function to update welcome message
+      function updateWelcomeMessage() {
+        const welcomeMessage = document.getElementById("welcome-message");
+        if (welcomeMessage) {
+          welcomeMessage.textContent = `Welcome, ${loggedInUser}`;
+        }
+      }
+
+      // Function to handle logout
+      function logout() {
+        sessionStorage.removeItem("loggedInUser");
+        window.location.href = "login.html";
+      }
+
+      // Update welcome message when page loads
+      window.addEventListener('load', updateWelcomeMessage);
+    </script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
